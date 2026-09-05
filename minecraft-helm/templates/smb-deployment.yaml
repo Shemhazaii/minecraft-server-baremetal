@@ -1,0 +1,57 @@
+{{- if .Values.smb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "minecraft.fullname" . }}-smb
+  labels:
+    {{- include "minecraft.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+
+  strategy:
+    type: Recreate
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "minecraft.name" . }}-smb
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "minecraft.name" . }}-smb
+        app.kubernetes.io/instance: {{ .Release.Name }}
+
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.smb.nodeSelector | nindent 8 }}
+
+      containers:
+        - name: samba
+
+          image: "{{ .Values.smb.image.repository }}:{{ .Values.smb.image.tag }}"
+          imagePullPolicy: {{ .Values.smb.image.pullPolicy }}
+
+          args:
+            - "-u"
+            - "{{ .Values.smb.username }};{{ .Values.smb.password }}"
+            - "-s"
+            - "{{ .Values.smb.shareName }};/minecraft;yes;no;yes;all;{{ .Values.smb.username }}"
+
+          ports:
+            - name: smb
+              containerPort: 445
+              protocol: TCP
+
+          resources:
+            {{- toYaml .Values.smb.resources | nindent 12 }}
+
+          volumeMounts:
+            - name: minecraft-data
+              mountPath: /minecraft
+
+      volumes:
+        - name: minecraft-data
+          persistentVolumeClaim:
+            claimName: {{ include "minecraft.fullname" . }}-data
+  {{- end }}

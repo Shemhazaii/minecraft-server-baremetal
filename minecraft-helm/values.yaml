@@ -1,0 +1,93 @@
+nameOverride: ""
+fullnameOverride: ""
+
+minecraft:
+  image:
+    repository: itzg/minecraft-server
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  type: YOUER
+  version: "1.21.1"
+
+  # Ganti sesuai kebutuhan
+  memory: "16G"
+
+  timezone: "Asia/Jakarta"
+
+  eula: "TRUE"
+
+  serverName: "Minecraft Modded Server"
+
+  difficulty: "normal"
+  mode: "survival"
+
+  motd: "Modded Minecraft Server"
+
+  maxPlayers: 10
+
+  viewDistance: 32
+  simulationDistance: 32
+
+  onlineMode: false
+
+  enableCommandBlock: false
+
+  # Kalau menggunakan whitelist
+  whitelist: ""
+
+  resources:
+    requests:
+      cpu: "2"
+      memory: "16Gi"
+    limits:
+      cpu: "8"
+      memory: "16Gi"
+
+  nodeSelector:
+    kubernetes.io/hostname: minipc
+
+  tolerations: []
+
+  affinity: {}
+
+storage:
+  size: 100Gi
+
+  storageClass: local-path
+
+  accessMode: ReadWriteOnce
+
+  mountPath: /data
+
+service:
+  minecraft:
+    type: NodePort
+    port: 25566
+    nodePort: 32566
+
+smb:
+  enabled: true
+
+  image:
+    repository: dperson/samba
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  shareName: minecraft
+
+  username: minecraft
+
+  # GANTI PASSWORD INI
+  password: "Xankriegor@123"
+
+  nodeSelector:
+    kubernetes.io/hostname: minipc
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "minecraft.fullname" . }}
+  labels:
+    {{- include "minecraft.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+
+  strategy:
+    type: Recreate
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "minecraft.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "minecraft.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.minecraft.nodeSelector | nindent 8 }}
+
+      tolerations:
+        {{- toYaml .Values.minecraft.tolerations | nindent 8 }}
+
+      affinity:
+        {{- toYaml .Values.minecraft.affinity | nindent 8 }}
+
+      terminationGracePeriodSeconds: 120
+
+      containers:
+        - name: minecraft
+
+          image: "{{ .Values.minecraft.image.repository }}:{{ .Values.minecraft.image.tag }}"
+          imagePullPolicy: {{ .Values.minecraft.image.pullPolicy }}
+
+          env:
+            - name: EULA
+              value: "{{ .Values.minecraft.eula }}"
+
+            - name: TYPE
+              value: "{{ .Values.minecraft.type }}"
+
+            - name: VERSION
+              value: "{{ .Values.minecraft.version }}"
+
+            - name: MEMORY
+              value: "{{ .Values.minecraft.memory }}"
+
+            - name: TZ
+              value: "{{ .Values.minecraft.timezone }}"
+
+            - name: SERVER_NAME
+              value: "{{ .Values.minecraft.serverName }}"
+
+            - name: DIFFICULTY
+              value: "{{ .Values.minecraft.difficulty }}"
+
+            - name: MODE
+              value: "{{ .Values.minecraft.mode }}"
+
+            - name: MOTD
+              value: "{{ .Values.minecraft.motd }}"
+
+            - name: MAX_PLAYERS
+              value: "{{ .Values.minecraft.maxPlayers | quote }}"
+
+            - name: VIEW_DISTANCE
+              value: "{{ .Values.minecraft.viewDistance | quote }}"
+
+            - name: SIMULATION_DISTANCE
+              value: "{{ .Values.minecraft.simulationDistance | quote }}"
+
+            - name: ONLINE_MODE
+              value: "{{ .Values.minecraft.onlineMode | quote }}"
+
+            - name: ENABLE_COMMAND_BLOCK
+              value: "{{ .Values.minecraft.enableCommandBlock | quote }}"
+
+            {{- if .Values.minecraft.whitelist }}
+            - name: WHITELIST
+              value: "{{ .Values.minecraft.whitelist }}"
+            {{- end }}
+
+          ports:
+            - name: minecraft
+              containerPort: 25565
+              protocol: TCP
+
+          resources:
+            {{- toYaml .Values.minecraft.resources | nindent 12 }}
+
+          volumeMounts:
+            - name: minecraft-data
+              mountPath: {{ .Values.storage.mountPath }}
+
+      volumes:
+        - name: minecraft-data
+          persistentVolumeClaim:
+            claimName: {{ include "minecraft.fullname" . }}-data

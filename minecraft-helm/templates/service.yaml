@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minecraft.fullname" . }}
+  labels:
+    {{- include "minecraft.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.minecraft.type }}
+
+  selector:
+    app.kubernetes.io/name: {{ include "minecraft.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+
+  ports:
+    - name: minecraft
+      protocol: TCP
+      port: {{ .Values.service.minecraft.port }}
+      targetPort: 25565
+      {{- if eq .Values.service.minecraft.type "NodePort" }}
+      nodePort: {{ .Values.service.minecraft.nodePort }}
+      {{- end }}
